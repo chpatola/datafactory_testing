@@ -1,0 +1,9 @@
+{
+	"name": "datafactorychpa",
+	"location": "westeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "5cc82ee1-4772-4fb6-b8fa-12cccb8f9e47",
+		"tenantId": "e9edbaa7-549d-438c-9280-90d9f616f03c"
+	}
+}
