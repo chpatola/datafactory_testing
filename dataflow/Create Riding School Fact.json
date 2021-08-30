@@ -24,6 +24,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "teacherdata"
+				},
+				{
+					"dataset": {
+						"referenceName": "StudentInput",
+						"type": "DatasetReference"
+					},
+					"name": "studentdata"
 				}
 			],
 			"sinks": [],
@@ -33,9 +40,15 @@
 				},
 				{
 					"name": "JoinTeacher"
+				},
+				{
+					"name": "JoinStudent"
+				},
+				{
+					"name": "StudentAgeGroup"
 				}
 			],
-			"script": "source(output(\n\t\tClassID as string,\n\t\tStart as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tFinish as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tTeacherID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> classdata\nsource(output(\n\t\tClassID as string,\n\t\tStudentID as string,\n\t\tHorseName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> classhorsestudentdata\nsource(output(\n\t\tID as string,\n\t\tName as string,\n\t\tHourlySalary as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> teacherdata\nclassdata, classhorsestudentdata join(classdata@ClassID == classhorsestudentdata@ClassID,\n\tjoinType:'inner',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> JoinClassHorseStudent\nJoinClassHorseStudent, teacherdata join(ERROR_FUNCTION('') == teacherdata@ID,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> JoinTeacher"
+			"script": "source(output(\n\t\tClassID as string,\n\t\tStart as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tFinish as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tTeacherID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> classdata\nsource(output(\n\t\tClassID as string,\n\t\tStudentID as string,\n\t\tHorseName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> classhorsestudentdata\nsource(output(\n\t\tID as string,\n\t\tName as string,\n\t\tHourlySalary as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> teacherdata\nsource(output(\n\t\tID as string,\n\t\tName as string,\n\t\tBornYear as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> studentdata\nclassdata, classhorsestudentdata join(classdata@ClassID == classhorsestudentdata@ClassID,\n\tjoinType:'inner',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> JoinClassHorseStudent\nJoinClassHorseStudent, teacherdata join(TeacherID == ID,\n\tjoinType:'left',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> JoinTeacher\nJoinTeacher, studentdata join(StudentID == studentdata@ID,\n\tjoinType:'inner',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> JoinStudent\nJoinStudent derive(AgeGroup = case(year(currentDate()) - BornYear> 17,'Adult','Child')) ~> StudentAgeGroup"
 		}
 	}
 }
