@@ -32,7 +32,7 @@
 				"type": "String"
 			},
 			{
-				"name": "Teacher",
+				"name": "TeacherID",
 				"type": "String"
 			}
 		]
