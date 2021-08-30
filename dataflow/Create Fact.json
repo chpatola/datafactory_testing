@@ -1,5 +1,5 @@
 {
-	"name": "dataflow1",
+	"name": "Create Fact",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -14,7 +14,7 @@
 			],
 			"sinks": [],
 			"transformations": [],
-			"script": "source(output(\n\t\tClassID as string,\n\t\tStart as timestamp 'dd-MM-yyyy HH:mm:ss',\n\t\tFinish as timestamp 'dd-MM-yyyy HH:mm:ss',\n\t\tTeacher as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false) ~> classdata"
+			"script": "source(output(\n\t\tClassID as short,\n\t\tStart as string,\n\t\tFinish as string,\n\t\tTeacher as short\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> classdata"
 		}
 	}
 }
