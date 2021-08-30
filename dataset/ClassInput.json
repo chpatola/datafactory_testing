@@ -1,0 +1,40 @@
+{
+	"name": "ClassInput",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "classes.csv",
+				"container": "input"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "ClassID",
+				"type": "String"
+			},
+			{
+				"name": "Start",
+				"type": "String"
+			},
+			{
+				"name": "Finish",
+				"type": "String"
+			},
+			{
+				"name": "Teacher",
+				"type": "String"
+			}
+		]
+	}
+}

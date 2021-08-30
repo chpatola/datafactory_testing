@@ -1,0 +1,20 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ClassInput",
+						"type": "DatasetReference"
+					},
+					"name": "classdata"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"script": "source(output(\n\t\tClassID as string,\n\t\tStart as timestamp 'dd-MM-yyyy HH:mm:ss',\n\t\tFinish as timestamp 'dd-MM-yyyy HH:mm:ss',\n\t\tTeacher as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false) ~> classdata"
+		}
+	}
+}
