@@ -10,11 +10,22 @@
 						"type": "DatasetReference"
 					},
 					"name": "classdata"
+				},
+				{
+					"dataset": {
+						"referenceName": "ClassHorseStudentInput",
+						"type": "DatasetReference"
+					},
+					"name": "classhorsestudentdata"
 				}
 			],
 			"sinks": [],
-			"transformations": [],
-			"script": "source(output(\n\t\tClassID as string,\n\t\tStart as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tFinish as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tTeacher as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> classdata"
+			"transformations": [
+				{
+					"name": "JoinClassHorseStudent"
+				}
+			],
+			"script": "source(output(\n\t\tClassID as string,\n\t\tStart as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tFinish as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tTeacher as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> classdata\nsource(output(\n\t\tClassID as string,\n\t\tStudentID as string,\n\t\tHorseName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> classhorsestudentdata\nclassdata, classhorsestudentdata join(classdata@ClassID == classhorsestudentdata@ClassID,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinClassHorseStudent"
 		}
 	}
 }
