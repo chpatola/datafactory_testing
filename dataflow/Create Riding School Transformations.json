@@ -1,5 +1,5 @@
 {
-	"name": "Create Riding School Fact",
+	"name": "Create Riding School Transformations",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
