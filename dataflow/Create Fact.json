@@ -14,7 +14,7 @@
 			],
 			"sinks": [],
 			"transformations": [],
-			"script": "source(output(\n\t\tClassID as short,\n\t\tStart as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tFinish as timestamp 'MM/dd/yyyy HH:mm:ss',\n\t\tTeacher as short\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> classdata"
+			"script": "source(output(\n\t\tClassID as string,\n\t\tStart as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tFinish as timestamp 'MM/dd/yyyy HH:mm:ss',\n\t\tTeacher as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> classdata"
 		}
 	}
 }
