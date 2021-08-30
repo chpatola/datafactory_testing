@@ -1,5 +1,5 @@
 {
-	"name": "HorseOutput",
+	"name": "RidingSchoolOutput",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureBlobStorage1",
