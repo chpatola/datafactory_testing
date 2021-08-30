@@ -10,10 +10,6 @@
 		"AzureBlobStorage1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
-		},
-		"RidingSchoolBlobChange_properties_typeProperties_scope": {
-			"type": "string",
-			"defaultValue": "/subscriptions/5cd47473-1a62-4ed1-ab74-db286182834d/resourceGroups/cloud-shell-storage-westeurope/providers/Microsoft.Storage/storageAccounts/csb1003200097ee8b4c"
 		}
 	},
 	"variables": {
@@ -325,6 +321,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "StudentOutput"
+						},
+						{
+							"dataset": {
+								"referenceName": "RidingSchoolOutput",
+								"type": "DatasetReference"
+							},
+							"name": "TeacherOutput"
 						}
 					],
 					"transformations": [
@@ -347,7 +350,7 @@
 							"name": "StudentAgeGroup"
 						}
 					],
-					"script": "source(output(\n\t\tClassID as string,\n\t\tStart as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tFinish as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tTeacherID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> classdata\nsource(output(\n\t\tClassID as string,\n\t\tStudentID as string,\n\t\tHorseName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> classhorsestudentdata\nsource(output(\n\t\tID as string,\n\t\tName as string,\n\t\tHourlySalary as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> teacherdata\nsource(output(\n\t\tID as string,\n\t\tName as string,\n\t\tBornYear as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> studentdata\nclassdata, classhorsestudentdata join(classdata@ClassID == classhorsestudentdata@ClassID,\n\tjoinType:'inner',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> JoinClassHorseStudent\nJoinClassHorseStudent, teacherdata join(TeacherID == ID,\n\tjoinType:'left',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> JoinTeacher\nJoinTeacher, StudentAgeGroup join(StudentID == studentdata@ID,\n\tjoinType:'inner',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> JoinStudent\nJoinStudent derive(ClassDurationHour = hour(toTimestamp(Finish -Start)),\n\t\tUnitCost = hour(toTimestamp(Finish -Start) ) * HourlySalary,\n\t\tUnitTurnover = case( StudentAgeGroup== 'Adult', hour(toTimestamp(Finish -Start) ) * 39, hour(toTimestamp(Finish -Start) ) * 30),\n\t\tUnitProfit = case( StudentAgeGroup== 'Adult', hour(toTimestamp(Finish -Start) ) * 39, hour(toTimestamp(Finish -Start) ) * 30) - hour(toTimestamp(Finish -Start) ) * HourlySalary) ~> CostTurnoverColumns\nCostTurnoverColumns select(mapColumn(\n\t\tClassStart = Start,\n\t\tClassFinish = Finish,\n\t\tTeacherID,\n\t\tStudentID,\n\t\tHorseName,\n\t\tTeacherName = teacherdata@Name,\n\t\tTeacherHourlySalary = HourlySalary,\n\t\tStudentName = studentdata@Name,\n\t\tStudentAgeGroup,\n\t\tClassDurationHour,\n\t\tUnitCost,\n\t\tUnitTurnover,\n\t\tUnitProfit\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: true) ~> Select1\nstudentdata derive(StudentAgeGroup = case(year(currentDate()) - BornYear> 17,'Adult','Child')) ~> StudentAgeGroup\nSelect1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['RidingSchoolFact.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FinishedFact\nStudentAgeGroup sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['StudentOutput.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> StudentOutput"
+					"script": "source(output(\n\t\tClassID as string,\n\t\tStart as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tFinish as timestamp 'MM-dd-yyyy HH:mm:ss',\n\t\tTeacherID as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> classdata\nsource(output(\n\t\tClassID as string,\n\t\tStudentID as string,\n\t\tHorseName as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> classhorsestudentdata\nsource(output(\n\t\tID as string,\n\t\tName as string,\n\t\tHourlySalary as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> teacherdata\nsource(output(\n\t\tID as string,\n\t\tName as string,\n\t\tBornYear as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> studentdata\nclassdata, classhorsestudentdata join(classdata@ClassID == classhorsestudentdata@ClassID,\n\tjoinType:'inner',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> JoinClassHorseStudent\nJoinClassHorseStudent, teacherdata join(TeacherID == ID,\n\tjoinType:'left',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> JoinTeacher\nJoinTeacher, StudentAgeGroup join(StudentID == studentdata@ID,\n\tjoinType:'inner',\n\tpartitionBy('hash', 1),\n\tbroadcast: 'auto')~> JoinStudent\nJoinStudent derive(ClassDurationHour = hour(toTimestamp(Finish -Start)),\n\t\tUnitCost = hour(toTimestamp(Finish -Start) ) * HourlySalary,\n\t\tUnitTurnover = case( StudentAgeGroup== 'Adult', hour(toTimestamp(Finish -Start) ) * 39, hour(toTimestamp(Finish -Start) ) * 30),\n\t\tUnitProfit = case( StudentAgeGroup== 'Adult', hour(toTimestamp(Finish -Start) ) * 39, hour(toTimestamp(Finish -Start) ) * 30) - hour(toTimestamp(Finish -Start) ) * HourlySalary) ~> CostTurnoverColumns\nCostTurnoverColumns select(mapColumn(\n\t\tClassStart = Start,\n\t\tClassFinish = Finish,\n\t\tTeacherID,\n\t\tStudentID,\n\t\tHorseName,\n\t\tTeacherName = teacherdata@Name,\n\t\tTeacherHourlySalary = HourlySalary,\n\t\tStudentName = studentdata@Name,\n\t\tStudentAgeGroup,\n\t\tClassDurationHour,\n\t\tUnitCost,\n\t\tUnitTurnover,\n\t\tUnitProfit\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: true) ~> Select1\nstudentdata derive(StudentAgeGroup = case(year(currentDate()) - BornYear> 17,'Adult','Child')) ~> StudentAgeGroup\nSelect1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['RidingSchoolFact.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> FinishedFact\nStudentAgeGroup sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['StudentOutput.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> StudentOutput\nteacherdata sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['TeacherOutput.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> TeacherOutput"
 				}
 			},
 			"dependsOn": [
@@ -426,66 +429,6 @@
 						]
 					},
 					{
-						"name": "Copy Teacher Data",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".csv"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "TeacherInput",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "RidingSchoolOutput",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
 						"name": "Transformations",
 						"description": "Create one big fact table and enrichen student info",
 						"type": "ExecuteDataFlow",
@@ -509,7 +452,8 @@
 									"teacherdata": {},
 									"studentdata": {},
 									"FinishedFact": {},
-									"StudentOutput": {}
+									"StudentOutput": {},
+									"TeacherOutput": {}
 								}
 							},
 							"staging": {},
@@ -526,38 +470,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/HorseInput')]",
 				"[concat(variables('factoryId'), '/datasets/RidingSchoolOutput')]",
-				"[concat(variables('factoryId'), '/datasets/TeacherInput')]",
 				"[concat(variables('factoryId'), '/dataflows/Create Riding School Transformations')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/RidingSchoolBlobChange')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "RidingSchool",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "BlobEventsTrigger",
-				"typeProperties": {
-					"blobPathBeginsWith": "/input/blobs/",
-					"ignoreEmptyBlobs": true,
-					"scope": "[parameters('RidingSchoolBlobChange_properties_typeProperties_scope')]",
-					"events": [
-						"Microsoft.Storage.BlobCreated"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/RidingSchool')]"
 			]
 		}
 	]
