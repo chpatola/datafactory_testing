@@ -1,0 +1,24 @@
+{
+	"name": "TransformStudents",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "StudentInput",
+						"type": "DatasetReference"
+					},
+					"name": "Students"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "AgeExtraction"
+				}
+			],
+			"script": "source(output(\n\t\tID as string,\n\t\tName as string,\n\t\tBornYear as short\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> Students\nStudents derive(AgeYears = year(currentDate()) - BornYear,\n\t\tAgeGroup = case(year(currentDate()) - BornYear> 17,'Adult','Child')) ~> AgeExtraction"
+		}
+	}
+}
