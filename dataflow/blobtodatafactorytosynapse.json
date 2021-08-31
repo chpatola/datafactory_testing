@@ -1,0 +1,20 @@
+{
+	"name": "blobtodatafactorytosynapse",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "HorseInput",
+						"type": "DatasetReference"
+					},
+					"name": "Horses"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"script": "source(output(\n\t\tName as string,\n\t\tBreed as string,\n\t\tHeightCm as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> Horses"
+		}
+	}
+}
