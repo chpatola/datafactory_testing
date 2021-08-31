@@ -568,6 +568,52 @@
 							},
 							"traceLevel": "Fine"
 						}
+					},
+					{
+						"name": "HorsestoSynapse",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Copy Horse Data",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "blobtodatafactorytosynapse",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"Horses": {},
+									"LargeHorses": {}
+								}
+							},
+							"staging": {
+								"linkedService": {
+									"referenceName": "AzureBlobStorage1",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "clients"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "None",
+							"cacheSinks": {
+								"firstRowOnly": true
+							}
+						}
 					}
 				],
 				"annotations": []
@@ -575,7 +621,9 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/HorseInput')]",
 				"[concat(variables('factoryId'), '/datasets/RidingSchoolOutput')]",
-				"[concat(variables('factoryId'), '/dataflows/Create Riding School Transformations')]"
+				"[concat(variables('factoryId'), '/dataflows/Create Riding School Transformations')]",
+				"[concat(variables('factoryId'), '/dataflows/blobtodatafactorytosynapse')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
 			]
 		}
 	]
