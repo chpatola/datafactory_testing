@@ -89,7 +89,14 @@
 			{
 				"name": "HorsestoSynapse",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Copy Horse Data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "1.00:00:00",
 					"retry": 0,
@@ -102,6 +109,13 @@
 					"dataflow": {
 						"referenceName": "blobtodatafactorytosynapse",
 						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "AzureBlobStorage1",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "clients"
 					},
 					"compute": {
 						"coreCount": 8,
