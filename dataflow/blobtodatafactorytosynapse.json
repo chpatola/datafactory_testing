@@ -13,8 +13,12 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
-			"script": "source(output(\n\t\tName as string,\n\t\tBreed as string,\n\t\tHeightCm as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> Horses"
+			"transformations": [
+				{
+					"name": "Over150cm"
+				}
+			],
+			"script": "source(output(\n\t\tName as string,\n\t\tBreed as string,\n\t\tHeightCm as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> Horses\nHorses filter(HeightCm > 150) ~> Over150cm"
 		}
 	}
 }
