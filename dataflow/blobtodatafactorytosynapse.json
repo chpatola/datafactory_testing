@@ -12,13 +12,17 @@
 					"name": "Horses"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"name": "LargeHorses"
+				}
+			],
 			"transformations": [
 				{
 					"name": "Over150cm"
 				}
 			],
-			"script": "source(output(\n\t\tName as string,\n\t\tBreed as string,\n\t\tHeightCm as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> Horses\nHorses filter(HeightCm > 150) ~> Over150cm"
+			"script": "source(output(\n\t\tName as string,\n\t\tBreed as string,\n\t\tHeightCm as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> Horses\nHorses filter(HeightCm > 150,\n\tpartitionBy('hash', 1)) ~> Over150cm\nOver150cm sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> LargeHorses"
 		}
 	}
 }
