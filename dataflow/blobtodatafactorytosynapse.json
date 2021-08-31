@@ -14,6 +14,10 @@
 			],
 			"sinks": [
 				{
+					"dataset": {
+						"referenceName": "AzureSynapseAnalyticsHorsesOutput",
+						"type": "DatasetReference"
+					},
 					"name": "LargeHorses"
 				}
 			],
@@ -22,7 +26,7 @@
 					"name": "Over150cm"
 				}
 			],
-			"script": "source(output(\n\t\tName as string,\n\t\tBreed as string,\n\t\tHeightCm as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> Horses\nHorses filter(HeightCm > 150,\n\tpartitionBy('hash', 1)) ~> Over150cm\nOver150cm sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> LargeHorses"
+			"script": "source(output(\n\t\tName as string,\n\t\tBreed as string,\n\t\tHeightCm as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> Horses\nHorses filter(HeightCm > 150,\n\tpartitionBy('hash', 1)) ~> Over150cm\nOver150cm sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tName as string,\n\t\tBreed as string,\n\t\tHeightCm as decimal(18,0)\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tstaged: true,\n\tallowCopyCommand: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> LargeHorses"
 		}
 	}
 }
