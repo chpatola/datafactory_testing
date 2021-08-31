@@ -10,6 +10,10 @@
 		"AzureBlobStorage1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
+		"AzureSynapseAnalytics1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalytics1'"
 		}
 	},
 	"variables": {
@@ -30,6 +34,19 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalytics1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSynapseAnalytics1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ClassHorseStudentInput')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -37,6 +54,9 @@
 				"linkedServiceName": {
 					"referenceName": "AzureBlobStorage1",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "RidingSchool"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
@@ -78,6 +98,9 @@
 				"linkedServiceName": {
 					"referenceName": "AzureBlobStorage1",
 					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "RidingSchool"
 				},
 				"annotations": [],
 				"type": "DelimitedText",
@@ -168,6 +191,9 @@
 					"referenceName": "AzureBlobStorage1",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "RidingSchool"
+				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
@@ -238,6 +264,9 @@
 					"referenceName": "AzureBlobStorage1",
 					"type": "LinkedServiceReference"
 				},
+				"folder": {
+					"name": "RidingSchool"
+				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
@@ -268,6 +297,44 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/HorsesOutputSynapse')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalytics1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "RidingSchool"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "Name",
+						"type": "varchar"
+					},
+					{
+						"name": "Breed",
+						"type": "varchar"
+					},
+					{
+						"name": "HeightCm",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Horses2"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalytics1')]"
 			]
 		},
 		{
@@ -359,6 +426,44 @@
 				"[concat(variables('factoryId'), '/datasets/TeacherInput')]",
 				"[concat(variables('factoryId'), '/datasets/StudentInput')]",
 				"[concat(variables('factoryId'), '/datasets/RidingSchoolOutput')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/blobtodatafactorytosynapse')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "HorseInput",
+								"type": "DatasetReference"
+							},
+							"name": "Horses"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "HorsesOutputSynapse",
+								"type": "DatasetReference"
+							},
+							"name": "LargeHorses"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Over150cm"
+						}
+					],
+					"script": "source(output(\n\t\tName as string,\n\t\tBreed as string,\n\t\tHeightCm as integer\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tpartitionBy('hash', 1)) ~> Horses\nHorses filter(HeightCm > 150,\n\tpartitionBy('hash', 1)) ~> Over150cm\nOver150cm sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tName as string,\n\t\tBreed as string,\n\t\tHeightCm as integer\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tstaged: true,\n\tallowCopyCommand: true,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError',\n\tpartitionBy('hash', 1)) ~> LargeHorses"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/HorseInput')]",
+				"[concat(variables('factoryId'), '/datasets/HorsesOutputSynapse')]"
 			]
 		},
 		{
